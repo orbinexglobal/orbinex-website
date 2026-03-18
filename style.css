@@ -51,7 +51,10 @@ img {
   justify-content: space-between;
   height: 60px;
 }
-
+.logo {
+  height: 150px;
+  max-height: 100%;
+}
 .nav-logo {
   display: flex;
   align-items: center;
@@ -980,5 +983,11 @@ img {
 
   .nav-links {
     gap: 14px;
+  }
+}
+/* mobiile responsive */
+@media (max-width:768px){
+  .logo {
+    height: 40px;
   }
 }
