@@ -1,39 +1,256 @@
 document.addEventListener("DOMContentLoaded", function () {
-  var stepData = [
-    { num: "01", title: "Discovery", desc: "We start with a detailed discussion to understand your goals, needs, and project requirements.", note: "Clear communication and understanding is key." },
-    { num: "02", title: "Proposal & Agreement", desc: "I will provide a clear proposal outlining the scope, timeline, and cost. Once agreed, we will formalize it with a straightforward agreement.", note: "Transparent pricing. 50% deposit required to begin." },
-    { num: "03", title: "Design Approval", desc: "I will provide initial designs/mockups for your review and feedback.", note: "Two rounds of revisions included to refine the design." },
-    { num: "04", title: "Development", desc: "Upon approval, I will begin delivering your project, keeping you updated throughout the process.", note: "You will be kept updated throughout." },
-    { num: "05", title: "Delivery", desc: "Once finalized and you are happy with the result, I will launch your website and provide all necessary files.", note: "All necessary files provided." },
-    { num: "06", title: "Maintenance", desc: "I will provide continuous support to keep your site updated and performing well.", note: "Ongoing support available." }
-  ];
+  var body = document.body;
+  var navToggle = document.querySelector("[data-nav-toggle]");
+  var navMenu = document.querySelector("[data-nav-menu]");
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  var steps = document.querySelectorAll(".process-step");
+  if (navToggle && navMenu) {
+    navToggle.addEventListener("click", function () {
+      var isOpen = navToggle.getAttribute("aria-expanded") === "true";
+      navToggle.setAttribute("aria-expanded", String(!isOpen));
+      navMenu.classList.toggle("is-open", !isOpen);
+      body.classList.toggle("nav-open", !isOpen);
+    });
 
-  function updateSidebar(i) {
-    var t = document.getElementById("detail-step-title");
-    var d = document.getElementById("detail-step-desc");
-    var s = document.getElementById("steps-from-list");
-    if (t) t.textContent = stepData[i].title;
-    if (d) d.textContent = stepData[i].desc;
-    if (s) {
-      var html = "";
-      for (var j = 0; j <= i; j++) {
-        html += '<div class="steps-from-item"><span class="steps-from-num">' + stepData[j].num + " " + stepData[j].title + '</span></div>';
-        html += '<div style="font-size:13px;color:#4b5563;margin-bottom:8px">' + stepData[j].note + '</div>';
-      }
-      s.innerHTML = html;
+    navMenu.querySelectorAll("a").forEach(function (link) {
+      link.addEventListener("click", function () {
+        navToggle.setAttribute("aria-expanded", "false");
+        navMenu.classList.remove("is-open");
+        body.classList.remove("nav-open");
+      });
+    });
+  }
+
+  var revealItems = document.querySelectorAll("[data-reveal]");
+  if (revealItems.length) {
+    if (reduceMotion || !("IntersectionObserver" in window)) {
+      revealItems.forEach(function (item) {
+        item.classList.add("is-visible");
+      });
+    } else {
+      var revealObserver = new IntersectionObserver(function (entries, observer) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.16, rootMargin: "0px 0px -8% 0px" });
+
+      revealItems.forEach(function (item, index) {
+        item.setAttribute("data-reveal-delay", String(index % 4));
+        revealObserver.observe(item);
+      });
     }
   }
 
-  window.selectStep = function (i) {
-    steps.forEach(function (s) { s.classList.remove("active"); });
-    steps[i].classList.add("active");
-    updateSidebar(i);
-  };
+  var counters = document.querySelectorAll("[data-count]");
+  if (counters.length) {
+    var animateCounter = function (element) {
+      var target = Number(element.getAttribute("data-count")) || 0;
+      if (reduceMotion) {
+        element.textContent = String(target);
+        return;
+      }
 
-  if (steps.length) {
-    steps[0].classList.add("active");
-    updateSidebar(0);
+      var start = 0;
+      var duration = 900;
+      var startTime;
+
+      var tick = function (timestamp) {
+        if (!startTime) startTime = timestamp;
+        var progress = Math.min((timestamp - startTime) / duration, 1);
+        var eased = 1 - Math.pow(1 - progress, 3);
+        var value = Math.round(start + (target - start) * eased);
+        element.textContent = String(value);
+        if (progress < 1) {
+          window.requestAnimationFrame(tick);
+        }
+      };
+
+      window.requestAnimationFrame(tick);
+    };
+
+    if (reduceMotion || !("IntersectionObserver" in window)) {
+      counters.forEach(animateCounter);
+    } else {
+      var counterObserver = new IntersectionObserver(function (entries, observer) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            animateCounter(entry.target);
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.35 });
+
+      counters.forEach(function (counter) {
+        counterObserver.observe(counter);
+      });
+    }
+  }
+
+  var processData = [
+    {
+      kicker: "Phase 01",
+      title: "Discovery",
+      description: "We align on goals, audience, priorities, and practical constraints before anything is designed.",
+      focus: "Clarify what matters most so the project is shaped around real priorities rather than assumptions.",
+      note: "Direct communication, clear questions, and an honest view of what the project should include.",
+      points: [
+        "Business goals and audience alignment",
+        "Priority pages and success criteria",
+        "Technical and content constraints review"
+      ]
+    },
+    {
+      kicker: "Phase 02",
+      title: "Proposal and agreement",
+      description: "You receive a clear scope, timeline, and pricing structure so the engagement starts with confidence.",
+      focus: "Remove ambiguity early and make sure both sides are aligned before production begins.",
+      note: "Expect straightforward scope, pricing clarity, and a clean agreement to move forward.",
+      points: [
+        "Defined deliverables and timeline",
+        "Clear commercial structure",
+        "Shared understanding of the engagement"
+      ]
+    },
+    {
+      kicker: "Phase 03",
+      title: "Design direction",
+      description: "The visual system and page structure are shaped into a reviewable direction before the build continues.",
+      focus: "Create a premium, credible direction that matches the business while staying practical to implement.",
+      note: "You review a focused direction instead of getting buried in unnecessary variation.",
+      points: [
+        "Layout and hierarchy exploration",
+        "Visual tone and interaction direction",
+        "Refinement based on feedback"
+      ]
+    },
+    {
+      kicker: "Phase 04",
+      title: "Build and refinement",
+      description: "The approved direction is turned into a performant experience with visible progress and focused iteration.",
+      focus: "Translate the design into lightweight, maintainable code without losing polish.",
+      note: "Progress stays visible, and refinements stay tied to the agreed direction.",
+      points: [
+        "Responsive implementation",
+        "Accessibility and performance checks",
+        "Focused quality refinement"
+      ]
+    },
+    {
+      kicker: "Phase 05",
+      title: "Launch and handoff",
+      description: "Once approved, the site is delivered in a launch-ready state with clean files and clear next steps.",
+      focus: "Finish with a deployment-ready asset that feels complete, not provisional.",
+      note: "You receive a polished result plus the clarity needed to publish and maintain it.",
+      points: [
+        "Final review and approval",
+        "GitHub Pages-friendly file delivery",
+        "Launch guidance and handoff clarity"
+      ]
+    },
+    {
+      kicker: "Phase 06",
+      title: "Optional support",
+      description: "Post-launch help is available for updates, refinements, and steady improvement over time.",
+      focus: "Keep the digital presence aligned as the business evolves without creating unnecessary overhead.",
+      note: "Support remains practical, flexible, and centered on useful changes.",
+      points: [
+        "Content and layout updates",
+        "Ongoing refinements where needed",
+        "Guidance for future improvements"
+      ]
+    }
+  ];
+
+  var processSteps = document.querySelectorAll("[data-process-step]");
+  var processPanel = document.querySelector("[data-process-panel]");
+
+  if (processSteps.length && processPanel) {
+    var kicker = document.getElementById("process-kicker");
+    var title = document.getElementById("process-title");
+    var description = document.getElementById("process-description");
+    var focus = document.getElementById("process-focus");
+    var note = document.getElementById("process-note");
+    var points = document.getElementById("process-points");
+
+    var updateProcess = function (index) {
+      var step = processData[index];
+      processSteps.forEach(function (item, itemIndex) {
+        var active = itemIndex === index;
+        item.classList.toggle("is-active", active);
+        item.setAttribute("aria-selected", String(active));
+        if (active) {
+          processPanel.setAttribute("aria-labelledby", item.id);
+        }
+      });
+
+      kicker.textContent = step.kicker;
+      title.textContent = step.title;
+      description.textContent = step.description;
+      focus.textContent = step.focus;
+      note.textContent = step.note;
+      points.innerHTML = step.points.map(function (point) {
+        return "<li>" + point + "</li>";
+      }).join("");
+    };
+
+    processSteps.forEach(function (step) {
+      step.addEventListener("click", function () {
+        updateProcess(Number(step.getAttribute("data-step-index")) || 0);
+      });
+
+      step.addEventListener("keydown", function (event) {
+        var currentIndex = Number(step.getAttribute("data-step-index")) || 0;
+        if (event.key === "ArrowDown" || event.key === "ArrowRight") {
+          event.preventDefault();
+          var nextIndex = (currentIndex + 1) % processSteps.length;
+          processSteps[nextIndex].focus();
+          updateProcess(nextIndex);
+        }
+        if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+          event.preventDefault();
+          var previousIndex = (currentIndex - 1 + processSteps.length) % processSteps.length;
+          processSteps[previousIndex].focus();
+          updateProcess(previousIndex);
+        }
+      });
+    });
+
+    updateProcess(0);
+  }
+
+  var contactForm = document.querySelector("[data-contact-form]");
+  if (contactForm) {
+    var status = contactForm.querySelector("[data-form-status]");
+    contactForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      var formData = new FormData(contactForm);
+      var name = (formData.get("name") || "").toString().trim();
+      var email = (formData.get("email") || "").toString().trim();
+      var company = (formData.get("company") || "").toString().trim();
+      var service = (formData.get("service") || "").toString().trim();
+      var message = (formData.get("message") || "").toString().trim();
+
+      var subject = encodeURIComponent("Project inquiry from " + name);
+      var bodyLines = [
+        "Name: " + name,
+        "Email: " + email,
+        "Company: " + (company || "Not provided"),
+        "Service needed: " + service,
+        "",
+        "Project details:",
+        message
+      ];
+
+      var mailto = "mailto:contact.orbinex@gmail.com?subject=" + subject + "&body=" + encodeURIComponent(bodyLines.join("\n"));
+      window.location.href = mailto;
+
+      if (status) {
+        status.textContent = "Email draft created. If nothing opened, email contact.orbinex@gmail.com directly.";
+      }
+    });
   }
 });
