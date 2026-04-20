@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var navMenu = document.querySelector("[data-nav-menu]");
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  /* ── Navigation ── */
   if (navToggle && navMenu) {
     navToggle.addEventListener("click", function () {
       var isOpen = navToggle.getAttribute("aria-expanded") === "true";
@@ -21,6 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  /* ── Scroll reveal with stagger ── */
   var revealItems = document.querySelectorAll("[data-reveal]");
   if (revealItems.length) {
     if (reduceMotion || !("IntersectionObserver" in window)) {
@@ -35,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
             observer.unobserve(entry.target);
           }
         });
-      }, { threshold: 0.16, rootMargin: "0px 0px -8% 0px" });
+      }, { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
 
       revealItems.forEach(function (item, index) {
         item.setAttribute("data-reveal-delay", String(index % 4));
@@ -44,6 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  /* ── Counter animation ── */
   var counters = document.querySelectorAll("[data-count]");
   if (counters.length) {
     var animateCounter = function (element) {
@@ -54,13 +57,13 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       var start = 0;
-      var duration = 900;
+      var duration = 1100;
       var startTime;
 
       var tick = function (timestamp) {
         if (!startTime) startTime = timestamp;
         var progress = Math.min((timestamp - startTime) / duration, 1);
-        var eased = 1 - Math.pow(1 - progress, 3);
+        var eased = 1 - Math.pow(1 - progress, 4);
         var value = Math.round(start + (target - start) * eased);
         element.textContent = String(value);
         if (progress < 1) {
@@ -89,6 +92,48 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  /* ── Parallax orbs on mouse move ── */
+  if (!reduceMotion) {
+    var orbs = document.querySelectorAll(".hero-orb, .page-orb");
+    if (orbs.length) {
+      var targetX = 0, targetY = 0, currentX = 0, currentY = 0;
+
+      document.addEventListener("mousemove", function (e) {
+        targetX = (e.clientX / window.innerWidth - 0.5) * 30;
+        targetY = (e.clientY / window.innerHeight - 0.5) * 20;
+      });
+
+      var lerpOrbs = function () {
+        currentX += (targetX - currentX) * 0.04;
+        currentY += (targetY - currentY) * 0.04;
+        orbs.forEach(function (orb, i) {
+          var factor = i % 2 === 0 ? 1 : -0.7;
+          orb.style.transform = "translate3d(" +
+            (currentX * factor).toFixed(2) + "px, " +
+            (currentY * factor).toFixed(2) + "px, 0)";
+        });
+        requestAnimationFrame(lerpOrbs);
+      };
+      requestAnimationFrame(lerpOrbs);
+    }
+  }
+
+  /* ── Header opacity on scroll ── */
+  var header = document.querySelector(".site-header");
+  if (header) {
+    var lastScroll = 0;
+    window.addEventListener("scroll", function () {
+      var scrollY = window.pageYOffset;
+      if (scrollY > 80) {
+        header.style.borderBottomColor = "rgba(255,255,255,0.08)";
+      } else {
+        header.style.borderBottomColor = "rgba(255,255,255,0.03)";
+      }
+      lastScroll = scrollY;
+    }, { passive: true });
+  }
+
+  /* ── Process page tabs ── */
   var processData = [
     {
       kicker: "Phase 01",
@@ -221,6 +266,7 @@ document.addEventListener("DOMContentLoaded", function () {
     updateProcess(0);
   }
 
+  /* ── Contact form ── */
   var contactForm = document.querySelector("[data-contact-form]");
   if (contactForm) {
     var status = contactForm.querySelector("[data-form-status]");
